@@ -1,24 +1,24 @@
 #include <iostream>
 using namespace std;
 
-void DrawBoard(char board[3][3])
+void DrawBoard(char board[5][5], int width)
 {
-	for (int i = 0; i < 7; i++)
+	for (int row = 0; row < (width * 2) + 1; row++)
 	{
-		if (!(i % 2))//if(i % 2 == 0)
+		if (!(row % 2))//if(i % 2 == 0)
 		{
-			for (int j = 0; j < 12; j++)
+			for (int j = 0; j < (width * 4) + 1; j++)
 			{
 				cout << "-";
 			}
 		}
 		else
 		{
-			for (int j = 0; j < 4; j++)
+			for (int j = 0; j <= width; j++)
 			{
-				if (board[i / 2][j] && j < 3)
+				if (j < width)
 				{
-					cout << "| " << board[i / 2][j] << " ";
+					cout << "| " << board[row / 2][j] << " ";
 				}
 				else
 				{
@@ -30,65 +30,119 @@ void DrawBoard(char board[3][3])
 	}
 }
 
-char CheckWinner(char board[3][3])
-{
-	//Check horizontally first
-	for (int i = 0; i < 3; i++)
-	{
-		if (board[i][0] == board[i][1]
-			&& board[i][1] == board[i][2] && board[i][0] != ' ')
-		//if (board[i][0] == board[i][1] == board[i][2] && board[i][0]!= ' ')
-		{
-			return board[i][0];
+char CheckHorizontal(char board[5][5], int width) {
+	for (int row = 0; row < width; row++) {
+		char current = board[row][0];
+		if (current == ' ') break;
+
+		int matches = 1;
+		for (int col = 1; col < width; col++) {
+			if (board[row][col] != current) {
+				break;
+			}
+			else {
+				matches++;
+			}
+		}
+		if (matches == width) return current;
+	}
+	return ' ';
+}
+
+char CheckVerical(char board[5][5], int width) {
+	for (int col = 0; col < width; col++) {
+		char current = board[0][col];
+		if (current == ' ') break;
+
+		int matches = 1;
+		for (int row = 1; row < width; row++) {
+			if (board[row][col] != current) {
+				break;
+			}
+			else {
+				matches++;
+			}
+		}
+		if (matches == width) return current;
+	}
+	return ' ';
+}
+
+char CheckDaigonal(char board[5][5], int width) {
+	int matches;
+	char current;
+
+	matches = 1;
+	current = board[0][0];
+	for (int colRow = 1; colRow < width; colRow++) {
+		if (current == ' ') break;
+
+		if (board[colRow][colRow] != current) {
+			break;
+		}
+		else {
+			matches++;
 		}
 	}
+	if (matches == width) return current;
 
+	matches = 1;
+	current = board[0][width - 1];
+	int row = 1;
+	for (int col = width - 2; col >= 0; col--) {
+		if (current == ' ') break;
 
-	//Check vertically first
-	for (int i = 0; i < 3; i++)
-	{
-		if (board[0][i] == board[1][i]
-			&& board[1][i] == board[2][i] && board[0][i] != ' ')
-		{
-			return board[0][i];
+		if (board[row][col] != current) {
+			break;
 		}
+		else {
+			matches++;
+		}
+		row++;
 	}
-
-	if (board[0][0] == board[1][1] && board[1][1] == board[2][2]
-		&& board[0][0] != ' ')
-	{
-		return board[0][0];
-	}
-
-	if (board[2][0] == board[1][1] && board[1][1] == board[0][2] &&
-		board[2][0] != ' ')
-	{
-		return board[2][0];
-	}
+	if (matches == width) return current;
 
 	return ' ';
+}
+
+char CheckWinner(char board[5][5], int width)
+{
+	char winner = ' ';
+
+	winner = CheckHorizontal(board, width);
+	winner = CheckVerical(board, width);
+	winner = CheckDaigonal(board, width);
+
+	return winner;
 }
 
 
 void main()
 {
+	int width;
+
+	cout << "Please enter board width: ";
+	cin >> width;
+
+	while (width < 3 || width > 5) {
+		cout << "Please enter a board width between 3 and 5: ";
+		cin >> width;
+	}
+
+
 	char gameOver = ' ';
-	/*char board[3][3]{
-		{' ', ' ', ' '},
-		{' ', ' ', ' '},
-		{' ', ' ', ' '}
-	};*/
-	char board[3][3];
-	for (int i = 0; i < 3; i++)
+
+	char board[5][5];
+	for (int i = 0; i < width; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < width; j++)
 		{
 			board[i][j] = ' ';
 		}
 	}
 
 	bool isX = true;
-	DrawBoard(board);
+	DrawBoard(board, width);
 	int placed = 0;
 	do
 	{
@@ -96,9 +150,10 @@ void main()
 		int x, y;
 		cin >> x >> y;
 
-		while (board[x][y] != ' ')
+		while (board[x][y] != ' ' || x < 0 || x > width - 1 || y < 0 || y > width - 1)
 		{
-			cout << "Already filled location! Please choose again! " << endl;
+			cout << "Please enter a valid number: ";
+
 			cin >> x >> y;
 		}
 
@@ -112,9 +167,9 @@ void main()
 		}
 
 		placed++;
-		DrawBoard(board);
-		gameOver = CheckWinner(board);
-		if (gameOver == ' ' && placed == 9)
+		DrawBoard(board, width);
+		gameOver = CheckWinner(board, width);
+		if (gameOver == ' ' && placed == width * width)
 		{
 			cout << "Game over! No one won!" << endl;
 			break;
